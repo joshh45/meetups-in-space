@@ -15,4 +15,15 @@ class User < ActiveRecord::Base
       user.avatar_url = auth.info.image
     end
   end
+
+  validates :provider, presence: true
+  validates :uid, presence: true
+  validates :username, presence: true, uniqueness: true
+  validates :email, presence: true, format: { with: /.*(@).*\./ }, uniqueness: true
+  validates :avatar_url, presence: true
+
+
+
+
+
 end

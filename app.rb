@@ -40,9 +40,20 @@ get '/meetups' do
   erb :'meetups/index'
 end
 
+
+get '/meetups/:id' do
+  @id = params[:id]
+  @data = Meetup.find(@id)
+  erb :'meetups/show'
+end
+
 post '/newmeetup' do
-  @name = params[:article]
-  @info = Meetup.create(name: @name, description: "hi", location: "malden", creator_id: "here")
+  @name = params[:name]
+  @description = params[:description]
+  @location = params[:location]
+  @creator = params[:creator]
+
+  @info = Meetup.create(name: @name, description: @description, location: @location, creator_id: @creator)
 
   redirect '/meetups'
 end
