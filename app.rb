@@ -13,6 +13,20 @@ helpers do
     end
     @current_user
   end
+
+  def signed_in?
+    current_user.present?
+  end
+
+  def authenticate!
+    unless signed_in?
+      flash[:notice] = "Please sign in if you want to create a new event!"
+      redirect '/meetups'
+    end
+  end
+
+
+
 end
 
 
@@ -24,7 +38,6 @@ get '/auth/github/callback' do
   user = User.find_or_create_from_omniauth(env['omniauth.auth'])
   session[:user_id] = user.id
   flash[:notice] = "You're now signed in as #{user.username}!"
-
   redirect '/'
 end
 
@@ -44,18 +57,40 @@ end
 get '/meetups/:id' do
   @id = params[:id]
   @data = Meetup.find(@id)
+  @poster = current_user.username
+  @avatar_url = current_user.avatar_url
   erb :'meetups/show'
 end
 
 post '/newmeetup' do
-  @name = params[:name]
-  @description = params[:description]
-  @location = params[:location]
-  @creator = params[:creator]
 
-  @info = Meetup.create(name: @name, description: @description, location: @location, creator_id: @creator)
+    authenticate!
 
-  redirect '/meetups'
+    @name = params[:name]
+    @description = params[:description]
+    @location = params[:location]
+    @creator = params[:creator]
+
+    @info = Meetup.create(name: @name, description: @description, location: @location, creator_id: @creator)
+
+    if @info.name.empty?
+      flash[:notice] = "Missing Name"
+      redirect '/newmeetup'
+
+    elsif @info.description.empty?
+      flash[:notice] = "Missing Description"
+      redirect '/newmeetup'
+
+    elsif @info.location.empty?
+      flash[:notice] = "Missing Location"
+      redirect '/newmeetup'
+
+    else
+
+      flash[:notice] = "You have successfully created a new meetup called #{@name}!"
+      redirect '/meetups'
+
+  end
 end
 
 get '/newmeetup' do
